@@ -13,7 +13,7 @@ router.get("/verify", async (req: Request, res: Response) => {
     if (check.rowCount === 0)
       return res
         .status(400)
-        .json({ error: "Invalid Token Or Have Been Expired" });
+        .json({ err: "Invalid Token Or Have Been Expired" });
 
     const expiredate = check.rows[0].expiry;
     const userId = check.rows[0].userid;
@@ -24,7 +24,7 @@ router.get("/verify", async (req: Request, res: Response) => {
       );
       return res
         .status(400)
-        .json({ error: "Invalid Token Or Have Been Expired" });
+        .json({ err: "Invalid Token Or Have Been Expired" });
     }
     const isActive = true;
     const update = await client.query(

@@ -46,19 +46,19 @@ CREATE INDEX idx_user_pay_id ON user_payment(userid);
 
 /*product DB Design*/
 CREATE TABLE inventory(
-    id VARCHAR(13) NOT NULL PRIMARY KEY,
+    id VARCHAR(11) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     quantity INT
 );
 CREATE INDEX idx_inv_id ON inventory(id);
 
 CREATE TABLE product_category(
-    id VARCHAR(12) NOT NULL PRIMARY KEY,
+    id VARCHAR(12) NOT NULL REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     name VARCHAR(40) NOT NULL
 );
 CREATE INDEX idx_cat_id ON product_category(id);
 
 CREATE TABLE discount(
-    id VARCHAR(12) NOT NULL PRIMARY KEY,
+    id VARCHAR(12) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(300),
     discount_percent DECIMAL(12,2),
@@ -74,15 +74,6 @@ CREATE TABLE products(
     created_at TIMESTAMP NOT NULL,
     summary VARCHAR(325) NOT NULL,
     price DECIMAL(12,2) NOT NULL,
-    inventory_id VARCHAR(13) NOT NULL REFERENCES inventory(id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-    category_id VARCHAR(12) NOT NULL REFERENCES product_category(id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-    discount_id VARCHAR(12) REFERENCES discount(id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
 );
 CREATE INDEX idx_pid ON products(pid);
 

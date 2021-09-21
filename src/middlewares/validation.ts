@@ -98,3 +98,42 @@ exports.Loginvalidation = [
     next();
   },
 ];
+
+exports.Product = [
+  check("title")
+    .exists()
+    .matches(/^[A-Za-z$#%0-9\s]+$/)
+    .withMessage("Name must be alphabetic.")
+    .isLength({ min: 3, max: 128 })
+    .withMessage("title must be minimum 4 characters long"),
+  check("summary", "Please Provide A Summary ")
+    .notEmpty()
+    .withMessage("Summary required")
+    .isLength({ min: 10 })
+    .withMessage("Summary must be minimum 8 length"),
+  check("price")
+    .notEmpty()
+    .withMessage("Price required")
+    .isNumeric().withMessage('Only Numbers allowed'),
+  check("stock")
+    .notEmpty()
+    .withMessage("Price required")
+    .isNumeric().withMessage('Only Numbers allowed'),
+  check("category", "Please Provide A category ")
+    .notEmpty()
+    .withMessage("category required")
+    .isLength({ min: 2 })
+    .withMessage("minimum 2 length"),
+  (req: Request, res: Response, next: NextFunction) => {
+    //returns err from validation
+    const errors = validationResult(req);
+    const extractedErrors: any = [];
+    errors
+      .array({ onlyFirstError: true })
+      .map((err: any) => extractedErrors.push({ [err.param]: err.msg }));
+    if (!errors.isEmpty()) {
+      return res.json({ error: extractedErrors });
+    }
+    next();
+  },
+];

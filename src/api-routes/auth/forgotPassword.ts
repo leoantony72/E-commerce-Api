@@ -75,7 +75,7 @@ router.post(
     // get passwords
     const { password, confirmPassword, email } = req.body;
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Password not same" });
+      return res.status(400).json({ err: "Password not same" });
     }
     const userid = req.query.id;
     const token: any = req.query.rec;
@@ -87,7 +87,7 @@ router.post(
     if (checkuser.rowCount === 0) {
       return res
         .status(400)
-        .json({ error: "Invalid Token Or Token Have Expired" });
+        .json({ err: "Invalid Token Or Token Have Expired" });
     }
 
     const dbtoken = checkuser.rows[0].token;
@@ -95,7 +95,7 @@ router.post(
     if (successResult === false) {
       return res
         .status(400)
-        .json({ error: "Invalid Token Or Token Have Expired" });
+        .json({ err: "Invalid Token Or Token Have Expired" });
     }
     const hash = await bcrypt.hash(password, 10);
     const updatepass = await client.query(

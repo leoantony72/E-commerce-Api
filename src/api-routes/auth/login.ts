@@ -13,18 +13,16 @@ router.post(
     const { username, password } = req.body;
 
     if (req.session.newsession)
-      return res.status(400).json({ error: "You Are Alredy Logged In" });
+      return res.status(400).json({ err: "You Are Alredy Logged In" });
     await client.query("BEGIN");
     const query =
-      "SELECT username,passwordhash,active,email FROM users WHERE username = $1";
+      "SELECT userid,username,passwordhash,active,email FROM users WHERE username = $1";
     const result = await client.query(query, [username]);
 
     if (result.rowCount === 0)
-      return res
-        .status(400)
-        .json({ error: "Username Or Password Is Incorrect" });
+      return res.status(400).json({ err: "Username Or Password Is Incorrect" });
     if (result.rows[0].active !== true)
-      return res.status(400).json({ error: "Please Verify Your Eamil" });
+      return res.status(400).json({ err: "Please Verify Your Eamil" });
 
     const email = result.rows[0].email;
     const saltedPassword = result.rows[0].passwordhash;
@@ -39,9 +37,7 @@ router.post(
       await sendLoginalert(email);
     } else {
       await client.query("ROLLBACK");
-      return res
-        .status(400)
-        .json({ error: "Username Or Password Is Incorrect" });
+      return res.status(400).json({ err: "Username Or Password Is Incorrect" });
     }
   }
 );
