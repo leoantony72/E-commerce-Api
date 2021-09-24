@@ -58,8 +58,8 @@ CREATE TABLE product_category(
 CREATE INDEX idx_cat_id ON product_category(id);
 
 CREATE TABLE discount(
-    id VARCHAR(12) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
-    name VARCHAR(100) NOT NULL,
+    id VARCHAR(12) NOT NULL REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
+    coupon VARCHAR(100) NOT NULL,
     description VARCHAR(300),
     discount_percent DECIMAL(12,2),
     active BOOLEAN DEFAULT FALSE NOT NULL,

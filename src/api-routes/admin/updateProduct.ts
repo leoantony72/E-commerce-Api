@@ -1,12 +1,13 @@
-import express, { NextFunction, Request, response, Response } from "express";
+import express, { Request, Response } from "express";
 import fs from "fs";
 import { uploadimg } from "../../controller/upload";
 const router = express.Router();
-const client = require("../../config/database");
 const { promisify } = require("util");
-const unlinkAsync = promisify(fs.unlink);
 const { Product } = require("../../middlewares/validation");
+const client = require("../../config/database");
+const unlinkAsync = promisify(fs.unlink);
 
+//Update Product
 router.put("/product/:id", Product, async (req: Request, res: Response) => {
   const file: any = req.files?.image;
   if (!file || Object.keys(file).length === 0) {
@@ -57,6 +58,7 @@ router.put("/product/:id", Product, async (req: Request, res: Response) => {
   }
 });
 
+//Updates Stock Of The Product
 router.put("/stock/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

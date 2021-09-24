@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, response, Response } from "express";
+import express, { Request, Response } from "express";
 import fs from "fs";
 import { Postid } from "../../controller/generateId";
 import { uploadimg } from "../../controller/upload";
@@ -50,30 +50,6 @@ router.post("/product", Product, async (req: Request, res: Response) => {
   } catch (err) {
     await client.query("ROLLBACK");
     res.json({ message: err });
-  }
-});
-
-router.delete("/product/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    if (!id) return res.status(400).json({ err: "Product Id Not Found" });
-    const img = await client.query(
-      "SELECT image FROM products WHERE pid = $1",
-      [id]
-    );
-
-    const image = img.rows?.[0].image;
-
-    const checkpost = await client.query(
-      "DELETE FROM products WHERE pid = $1",
-      [id]
-    );
-    const path = "/mnt/e/codee/e-commerce/images/" + image;
-    fs.unlinkSync(path);
-    res.json({ success: "Product Deleted" });
-  } catch (err) {
-    console.log(err);
-    res.json({ err: err });
   }
 });
 
