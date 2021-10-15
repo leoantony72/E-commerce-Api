@@ -13,6 +13,7 @@ const app = express();
 const fileUpload = require("express-fileupload");
 const register = require("./api-routes/auth/register");
 const getproducts = require("./api-routes/users/getProducts");
+const ShoppingCart = require("./api-routes/users/shoppingCart");
 const verifyEmail = require("./api-routes/auth/verifyemail");
 const login = require("./api-routes/auth/login");
 const logout = require("./api-routes/auth/logout");
@@ -22,6 +23,7 @@ const updateproduct = require("./api-routes/admin/updateProduct");
 const deleteproduct = require("./api-routes/admin/deleteProduct");
 const add_discount = require("./api-routes/admin/discount");
 const checkusername = require("./api-routes/users/checkUsername");
+const paypal = require("./api-routes/admin/paypal");
 const { redis } = require("./config/redis");
 let RedisStore = require("connect-redis")(session);
 const secret: string = process.env.SESSION_SECRET!;
@@ -59,15 +61,20 @@ app.use("/api/auth", register);
 app.use("/api/auth", login);
 app.use("/api/auth", logout);
 app.use("/api/auth", forgotPassword);
+app.use("/api", paypal);
 app.use("/api", verifyEmail);
 app.use("/api", getproducts);
 app.use("/api", checkusername);
+app.use("/api", Usersvalidate, ShoppingCart);
 app.use("/api/admin", Adminvalidate, product);
 app.use("/api/admin", Adminvalidate, updateproduct);
 app.use("/api/admin", Adminvalidate, deleteproduct);
 app.use("/api/admin", Adminvalidate, add_discount);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err.status === 400) {
+    return res.status(400).json({ err: err.message });
+  }
   if (err.status === 401) {
     return res.status(401).json({ err: err.message });
   }

@@ -107,3 +107,17 @@ CREATE TABLE tokens(
     token TEXT NOT NULL UNIQUE,
     expiry TEXT
 );
+
+CREATE TABLE cart(
+    cart_id VARCHAR(13) NOT NULL PRIMARY KEY,
+    userid VARCHAR(11) NOT NULL REFERENCES users(userid)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    pid VARCHAR(11) NOT NULL REFERENCES products(pid)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    quantity SMALLINT NOT NULL DEFAULT 1,
+    date_created TIMESTAMP NOT NULL
+);
+
+CREATE INDEX cart_user_id ON cart(userid);

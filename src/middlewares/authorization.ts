@@ -47,7 +47,7 @@ export async function Usersvalidate(
       message: "Please Login To Use This Feature",
     });
   } else {
-    const query = "SELECT * FROM users WHERE userid = $1";
+    const query = "SELECT user_role FROM users WHERE userid = $1";
     const result = await client.query(query, [userid]);
     if (result.rowCount === 0) {
       next({

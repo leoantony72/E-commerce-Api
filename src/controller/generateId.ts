@@ -18,5 +18,8 @@ export function Coupon() {
   const id = nanoid();
   return id;
 }
-
-
+export function Cart() {
+  const nanoid = customAlphabet("1234567890abcdefhijklmnopABCDEFGHIJKLMNOP", 13);
+  const id = nanoid();
+  return id;
+}
