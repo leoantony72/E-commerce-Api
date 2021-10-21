@@ -21,7 +21,7 @@ router.get("/cart", async (req: Request, res: Response, next: NextFunction) => {
 
   if (getCartItems.rowCount === 0)
     return res.status(200).json({ success: "No Items Added" });
-  return res.status(200).json(getCartItems.rows);
+  return res.status(200).json({ products: getCartItems.rows });
 });
 
 //Add Product To Cart
@@ -37,7 +37,6 @@ router.post(
     let { pid } = req.params;
     var query = "SELECT quantity FROM cart WHERE userid = $1 AND pid = $2";
     const checkProduct = await client.query(query, [userid, pid]);
-    console.log(checkProduct);
     if (checkProduct.rowCount != 0) {
       let quantity = checkProduct.rows?.[0].quantity;
       let updatequantity = quantity + 1;

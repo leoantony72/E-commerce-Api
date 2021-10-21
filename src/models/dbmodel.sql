@@ -121,3 +121,27 @@ CREATE TABLE cart(
 );
 
 CREATE INDEX cart_user_id ON cart(userid);
+
+CREATE TABLE orders(
+    order_id TEXT PRIMARY KEY NOT NULL,
+    customer_id VARCHAR(11) NOT NULL,
+    total DECIMAL(12,2) NOT NULL,
+    billing_address_id VARCHAR(11) NOT NULL,
+    order_status VARCHAR(100),
+    payment_type VARCHAR(40) NOT NULL,
+    date_created TIMESTAMP NOT NULL
+);
+
+CREATE INDEX orderidx_id ON orders(order_id);
+CREATE INDEX order_cust_id ON orders(customer_id);
+
+CREATE TABLE order_items(
+    order_item_id VARCHAR(12),
+    order_id TEXT NOT NULL REFERENCES orders(order_id),
+    item_id VARCHAR(11) NOT NULL REFERENCES products(pid),
+    item_quantity INT NOT NULL,
+    price DECIMAL(12,2) NOT NULL
+);
+
+CREATE INDEX orderidx_item_id ON order_items(order_item_id);
+CREATE INDEX ordItemidx_id ON order_items(item_id);

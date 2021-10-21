@@ -10,6 +10,7 @@ import { serverError } from "./middlewares/errhandler";
 const session = require("express-session");
 require("dotenv").config();
 const app = express();
+const fs = require("fs");
 const fileUpload = require("express-fileupload");
 const register = require("./api-routes/auth/register");
 const getproducts = require("./api-routes/users/getProducts");
@@ -27,12 +28,16 @@ const paypal = require("./api-routes/admin/paypal");
 const { redis } = require("./config/redis");
 let RedisStore = require("connect-redis")(session);
 const secret: string = process.env.SESSION_SECRET!;
-
+const client = require("./config/database");
+const stripe = require("./api-routes/users/stripe");
+const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
 //Middlewares
 app.use(cors());
+app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+app.use(express.static("public"));
 app.use("/images", express.static("images/"));
 app.use(
   fileUpload({
@@ -65,6 +70,7 @@ app.use("/api", paypal);
 app.use("/api", verifyEmail);
 app.use("/api", getproducts);
 app.use("/api", checkusername);
+app.use("/api", stripe);
 app.use("/api", Usersvalidate, ShoppingCart);
 app.use("/api/admin", Adminvalidate, product);
 app.use("/api/admin", Adminvalidate, updateproduct);
@@ -89,7 +95,33 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  res.json("Server started");
+  let userid = req.session.userid;
+  if (!userid) {
+    return res.json("Not logged IN");
+  }
+  return res.json(userid);
+});
+
+//Ejs Store
+app.get("/store", async (req, res) => {
+  var limit = Number(req.query.limit);
+  if (!limit) var limit = 11;
+  try {
+    await client.query("BEGIN");
+
+    let query = "SELECT * FROM products LIMIT $1";
+    let getproducts = await client.query(query, [limit]);
+    await client.query("COMMIT");
+    //render store page
+    res.render("store.ejs", {
+      stripePublicKey: stripePublicKey,
+      items: { products: getproducts.rows },
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.log(err);
+    res.status(400).json({ err: err });
+  }
 });
 
 app.get("*", function (req, res) {

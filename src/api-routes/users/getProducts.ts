@@ -10,9 +10,9 @@ router.get("/products", async (req: Request, res: Response) => {
     await client.query("BEGIN");
 
     let query = "SELECT * FROM products LIMIT $1";
-    let getpoducts = await client.query(query, [limit]);
+    let getproducts = await client.query(query, [limit]);
     await client.query("COMMIT");
-    return res.json({ products: getpoducts.rows });
+    return res.json({ products: getproducts.rows });
   } catch (err) {
     await client.query("ROLLBACK");
     console.log(err);
