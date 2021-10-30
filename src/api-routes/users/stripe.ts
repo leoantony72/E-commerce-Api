@@ -1,7 +1,9 @@
 import express, { Response, Request } from "express";
 import { ClientRequest } from "http";
+import { json } from "stream/consumers";
 const router = express.Router();
 const client = require("../../config/database");
+const kafka = require("../../config/kafka");
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
@@ -13,6 +15,19 @@ router.post("/purchase", async (req: Request, res: Response) => {
   try {
     var total = 0;
     let amount = await finditem(items, total);
+
+    const producer = kafka.producer();
+    await producer.connect();
+    const sentorder = await producer.send({
+      topic: "orders",
+      messages: [
+        {
+          key: req.session.userid,
+          value: JSON.stringify({ items, amount }),
+        },
+      ],
+    });
+    console.log(sentorder);
 
     //Create Charge In Stripe
     const createCharge = await stripe.charges.create({
@@ -61,7 +76,7 @@ const finditem = async (items: any, total: any) => {
     console.log(price);
     let quantity = item.quantity;
     total = total + price * quantity;
-    console.log(total)
+    console.log(total);
   }
 
   console.log("map total :" + total);

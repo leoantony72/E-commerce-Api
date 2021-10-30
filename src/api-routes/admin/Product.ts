@@ -21,6 +21,7 @@ router.post("/product", Product, async (req: Request, res: Response) => {
   try {
     const { title, summary, price, stock, category } = req.body;
     const upload = await uploadimg(file);
+    console.log(upload);
     let image = upload;
 
     const pid = await Postid();

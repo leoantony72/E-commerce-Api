@@ -23,6 +23,7 @@
     "express-session": "^1.17.2",
     "express-validator": "^6.12.1",
     "ioredis": "^4.27.9",
+    "kafkajs": "^1.15.0",
     "mime": "^1.6.0",
     "morgan": "^1.10.0",
     "nanoid": "^3.1.25",

@@ -3,7 +3,7 @@ CREATE TABLE users(
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     user_role VARCHAR(25) DEFAULT 'USER' NOT NULL,
-    passwordhash VARCHAR(45) NOT NULL,
+    passwordhash TEXT NOT NULL,
     registered_at TIMESTAMP NOT NULL,
     user_ip VARCHAR(50),
     active BOOLEAN DEFAULT FALSE NOT NULL,
@@ -45,6 +45,17 @@ CREATE TABLE user_payment(
 CREATE INDEX idx_user_pay_id ON user_payment(userid);
 
 /*product DB Design*/
+
+CREATE TABLE products(
+    pid VARCHAR(11) NOT NULL PRIMARY KEY,
+    title VARCHAR(280) NOT NULL,
+    image VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    summary VARCHAR(325) NOT NULL,
+    price DECIMAL(12,2) NOT NULL
+);
+CREATE INDEX idx_pid ON products(pid);
+
 CREATE TABLE inventory(
     id VARCHAR(11) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     quantity INT
@@ -66,16 +77,6 @@ CREATE TABLE discount(
     created_at TIMESTAMP NOT NULL
 );
 CREATE INDEX idx_dis_id ON discount(id);
-
-CREATE TABLE products(
-    pid VARCHAR(11) NOT NULL PRIMARY KEY,
-    title VARCHAR(280) NOT NULL,
-    image CHARACTER NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    summary VARCHAR(325) NOT NULL,
-    price DECIMAL(12,2) NOT NULL,
-);
-CREATE INDEX idx_pid ON products(pid);
 
 CREATE TABLE product_rating(
     pratingid VARCHAR(11) NOT NULL PRIMARY KEY,

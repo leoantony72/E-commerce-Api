@@ -21,7 +21,7 @@ router.delete("/product/:id", async (req: Request, res: Response) => {
       "DELETE FROM products WHERE pid = $1",
       [id]
     );
-    const path = "/mnt/e/codee/e-commerce/images/" + image;
+    const path = "images/" + image;
     fs.unlinkSync(path);
     res.json({ success: "Product Deleted" });
   } catch (err) {

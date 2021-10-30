@@ -30,7 +30,7 @@ router.put("/product/:id", Product, async (req: Request, res: Response) => {
     );
     const currentimg = img.rows?.[0].image;
     //console.log(currentimg);
-    const path = "/mnt/e/codee/e-commerce/images/" + currentimg;
+    const path = "images/" + currentimg;
     if (currentimg !== image) {
       fs.unlinkSync(path);
     }

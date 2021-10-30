@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { Coupon } from "../../controller/generateId";
+import { checkusername } from "../../controller/username";
 const router = express.Router();
 const client = require("../../config/database");
 
@@ -14,6 +15,14 @@ router.post("/add_discount/:id", async (req: Request, res: Response) => {
   if (!active) var active = false;
   let coupon = Coupon();
   const created_at = new Date();
+
+  const checkproducts = await client.query(
+    "SELECT price FROM products WHERE pid = $1",
+    [id]
+  );
+  if (checkproducts.rowCount === 0) {
+    return res.status(400).json({ err: "Product Not Found" });
+  }
 
   await client.query("BEGIN");
   let query =
