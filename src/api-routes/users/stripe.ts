@@ -14,25 +14,11 @@ router.post("/purchase", async (req: Request, res: Response) => {
   //check Biling Address Exists or Not
   let query = "SELECT id FROM user_address WHERE userid = $1";
   const checkAddress = await client.query(query, [userid]);
-  console.log(checkAddress);
   if (checkAddress.rowCount === 0)
     return res.status(200).json({ message: "Please Add Billing Details" });
   try {
     var total = 0;
     let amount = await finditem(items, total);
-
-    const producer = kafka.producer();
-    await producer.connect();
-    const sentorder = await producer.send({
-      topic: "orders",
-      messages: [
-        {
-          key: req.session.userid,
-          value: JSON.stringify({ items, amount }),
-        },
-      ],
-    });
-    console.log(sentorder);
 
     //Create Charge In Stripe
     const createCharge = await stripe.charges.create({
@@ -52,11 +38,31 @@ router.post("/purchase", async (req: Request, res: Response) => {
       description: "test Shopping Cart",
     });
 
-    console.log("amount" + amount);
+    const producer = kafka.producer();
+    await producer.connect();
+
+    const sentorder = await producer.send({
+      topic: "orders",
+      messages: [
+        {
+          key: req.session.userid,
+          value: JSON.stringify({
+            order_id: createCharge.id,
+            customer_id: userid,
+            amount,
+            billing_address_id: checkAddress.rows?.[0].id,
+            order_status: createCharge.status,
+            payment_type: createCharge.payment_method,
+            items,
+          }),
+        },
+      ],
+    });
+    console.log(sentorder);
 
     if (createCharge.status === "succeeded") {
       console.log(createCharge);
-      return res.status(200).json({ message: "Successfully purchased items" });
+      res.status(200).json({ message: "Successfully purchased items" });
     } else {
       console.log(createCharge);
       return res
@@ -73,21 +79,15 @@ router.post("/purchase", async (req: Request, res: Response) => {
 const finditem = async (items: any, total: any) => {
   for (let item of items) {
     const id = item.pid;
-    console.log(id);
     let query = "SELECT price FROM products WHERE pid = $1";
     const getproduct = await client.query(query, [id]);
-    // console.log(JSON.stringify(getproduct.rows[0]));
     let price: any = parseFloat(getproduct.rows?.[0].price).toFixed(2);
-    console.log(price);
     let quantity = item.quantity;
     total = total + price * quantity;
-    console.log(total);
   }
 
-  console.log("map total :" + total);
   let finale = total.toString().replace(".", "");
   let totalPrice = parseInt(finale);
-  console.log(totalPrice);
   return totalPrice;
 };
 
