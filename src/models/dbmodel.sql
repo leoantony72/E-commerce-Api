@@ -27,20 +27,12 @@ CREATE TABLE user_address(
 
 CREATE INDEX idx_user_add_id ON user_address(userid);
 
-CREATE TABLE paypal(
-    id VARCHAR(11) NOT NULL PRIMARY KEY,
-    txn_id TEXT NOT NULL,
-    buyer_email VARCHAR(120) NOT NULL UNIQUE,
-    amount DECIMAL(12,2)
-);
-
 CREATE TABLE user_payment(
     id VARCHAR(11) NOT NULL PRIMARY KEY,
     userid VARCHAR(11) NOT NULL REFERENCES users(userid)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
     payment_type VARCHAR(50) NOT NULL,
-    paypal_id VARCHAR(11) NOT NULL REFERENCES paypal(id)
 );
 CREATE INDEX idx_user_pay_id ON user_payment(userid);
 
@@ -63,13 +55,13 @@ CREATE TABLE inventory(
 CREATE INDEX idx_inv_id ON inventory(id);
 
 CREATE TABLE product_category(
-    id VARCHAR(12) NOT NULL REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
+    id VARCHAR(11) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     name VARCHAR(40) NOT NULL
 );
 CREATE INDEX idx_cat_id ON product_category(id);
 
 CREATE TABLE discount(
-    id VARCHAR(12) NOT NULL REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
+    id VARCHAR(11) NOT NULL PRIMARY KEY REFERENCES products(pid) ON DELETE CASCADE ON UPDATE CASCADE,
     coupon VARCHAR(100) NOT NULL,
     description VARCHAR(300),
     discount_percent DECIMAL(12,2),
@@ -137,7 +129,7 @@ CREATE INDEX orderidx_id ON orders(order_id);
 CREATE INDEX order_cust_id ON orders(customer_id);
 
 CREATE TABLE order_items(
-    order_item_id VARCHAR(12),
+    order_item_id VARCHAR(12) PRIMARY KEY,
     order_id TEXT NOT NULL REFERENCES orders(order_id),
     item_id VARCHAR(11) NOT NULL REFERENCES products(pid),
     item_quantity INT NOT NULL,

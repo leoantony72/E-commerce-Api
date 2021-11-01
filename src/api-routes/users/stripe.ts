@@ -1,6 +1,4 @@
 import express, { Response, Request } from "express";
-import { ClientRequest } from "http";
-import { json } from "stream/consumers";
 const router = express.Router();
 const client = require("../../config/database");
 const kafka = require("../../config/kafka");
@@ -12,6 +10,13 @@ const stripe = require("stripe")(stripeSecretKey);
 //stripe Payment
 router.post("/purchase", async (req: Request, res: Response) => {
   const items = req.body.items;
+  const userid = req.session.userid;
+  //check Biling Address Exists or Not
+  let query = "SELECT id FROM user_address WHERE userid = $1";
+  const checkAddress = await client.query(query, [userid]);
+  console.log(checkAddress);
+  if (checkAddress.rowCount === 0)
+    return res.status(200).json({ message: "Please Add Billing Details" });
   try {
     var total = 0;
     let amount = await finditem(items, total);
@@ -56,7 +61,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
       console.log(createCharge);
       return res
         .status(400)
-        .send({ err: "Please try again later for payment" });
+        .send({ message: "Please try again later for payment" });
     }
   } catch (err: any) {
     return res.status(400).json({

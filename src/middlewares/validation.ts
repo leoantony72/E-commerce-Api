@@ -114,14 +114,66 @@ exports.Product = [
   check("price")
     .notEmpty()
     .withMessage("Price required")
-    .isNumeric().withMessage('Only Numbers allowed'),
+    .isNumeric()
+    .withMessage("Only Numbers allowed"),
   check("stock")
     .notEmpty()
     .withMessage("Price required")
-    .isNumeric().withMessage('Only Numbers allowed'),
+    .isNumeric()
+    .withMessage("Only Numbers allowed"),
   check("category", "Please Provide A category ")
     .notEmpty()
     .withMessage("category required")
+    .isLength({ min: 2 })
+    .withMessage("minimum 2 length"),
+  (req: Request, res: Response, next: NextFunction) => {
+    //returns err from validation
+    const errors = validationResult(req);
+    const extractedErrors: any = [];
+    errors
+      .array({ onlyFirstError: true })
+      .map((err: any) => extractedErrors.push({ [err.param]: err.msg }));
+    if (!errors.isEmpty()) {
+      return res.json({ error: extractedErrors });
+    }
+    next();
+  },
+];
+
+exports.BillingDetails = [
+  check("address_line1")
+    .exists()
+    .matches(/^[A-Za-z$#%0-9\s]+$/)
+    .withMessage("address_line1 must be alphabetic.")
+    .isLength({ min: 3, max: 275 })
+    .withMessage("addresline1 Not Provided"),
+  check("address_line2")
+    .matches(/^[A-Za-z$#%0-9\s]+$/)
+    .withMessage("address_line2 must be alphabetic.")
+    .isLength({ min: 3, max: 275 })
+    .withMessage("addresline2 Not Provided"),
+  check("mobile")
+    .notEmpty()
+    .withMessage("mobile required")
+    .isNumeric()
+    .withMessage("Only Numbers allowed")
+    .isLength({ min: 2 })
+    .withMessage("minimum 2 length"),
+  check("postalCode")
+    .notEmpty()
+    .withMessage("PostalCode required")
+    .isNumeric()
+    .withMessage("Only Numbers allowed")
+    .isLength({ min: 2 })
+    .withMessage("minimum 2 length"),
+  check("city", "Please Provide A city ")
+    .notEmpty()
+    .withMessage("city required")
+    .isLength({ min: 2 })
+    .withMessage("minimum 2 length"),
+  check("country", "Please Provide A country ")
+    .notEmpty()
+    .withMessage("country required")
     .isLength({ min: 2 })
     .withMessage("minimum 2 length"),
   (req: Request, res: Response, next: NextFunction) => {
