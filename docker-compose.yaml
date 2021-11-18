@@ -71,6 +71,13 @@ services:
       - "6379:6379"
     volumes:
       - ./redis-data:/mnt/e/codee/e-commerce/var/lib/redis/data
+  nginx:
+    container_name: nginxproxy
+    restart: always
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
 volumes:
   postgres_data:
   redis_data:

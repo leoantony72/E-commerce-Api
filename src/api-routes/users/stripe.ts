@@ -17,8 +17,22 @@ router.post("/purchase", async (req: Request, res: Response) => {
   if (checkAddress.rowCount === 0)
     return res.status(200).json({ message: "Please Add Billing Details" });
   try {
-    var total = 0;
-    let amount = await finditem(items, total);
+    let total = 0;
+    let failed: [] = [];
+    let success: [] = [];
+    let Order = await finditem(items, total, failed, success);
+    let totalAmount = Order.amount;
+    let failedOrders = Order.failed;
+    let succeeded = Order.success;
+
+    console.log(
+      "Orders  Failed  :" +
+        Order.failed +
+        ":  Amount  :" +
+        totalAmount +
+        ":  Orders succeed  :" +
+        succeeded
+    );
 
     //Create Charge In Stripe
     const createCharge = await stripe.charges.create({
@@ -32,7 +46,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
           country: "US",
         },
       },
-      amount: amount,
+      amount: Order.amount,
       source: req.body.stripeTokenId,
       currency: "usd",
       description: "test Shopping Cart",
@@ -49,7 +63,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
           value: JSON.stringify({
             order_id: createCharge.id,
             customer_id: userid,
-            amount,
+            amount: totalAmount,
             billing_address_id: checkAddress.rows?.[0].id,
             order_status: createCharge.status,
             payment_type: createCharge.payment_method,
@@ -58,37 +72,81 @@ router.post("/purchase", async (req: Request, res: Response) => {
         },
       ],
     });
-    console.log(sentorder);
 
     if (createCharge.status === "succeeded") {
-      console.log(createCharge);
-      res.status(200).json({ message: "Successfully purchased items" });
+      //console.log(createCharge);
+      res.status(200).json({
+        message: "Successfully purchased items",
+        failed: failedOrders,
+      });
+      let updateQuantity = await decreaseQuantity(succeeded);
     } else {
       console.log(createCharge);
-      return res
-        .status(400)
-        .send({ message: "Please try again later for payment" });
+      return res.status(400).json({
+        message: "Please try again later for payment",
+        failed: failedOrders,
+      });
     }
   } catch (err: any) {
     return res.status(400).json({
-      err: err.message,
+      message: "Please try again later for payment",
     });
   }
 });
 
-const finditem = async (items: any, total: any) => {
+const decreaseQuantity = async (items: any) => {
+  try {
+    for (let item of items) {
+      let pid = item.pid;
+      let Quantity = item.quantity;
+
+      let query = "SELECT quantity FROM inventory WHERE id = $1";
+      let query2 = "UPDATE inventory SET quantity = $1 WHERE id = $2";
+
+      const getquantity = await client.query(query, [pid]);
+      const initialquantity = getquantity.rows?.[0].quantity;
+
+      const finalquantity = initialquantity - Quantity;
+      //console.log("FINAL QUANTITY  :" + finalquantity);
+
+      const updateQuantity = await client.query(query2, [finalquantity, pid]);
+      //console.log(updateQuantity);
+    }
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+};
+
+const finditem = async (items: any, total: any, success: any, failed: any) => {
   for (let item of items) {
     const id = item.pid;
+    const quantity = item.quantity;
     let query = "SELECT price FROM products WHERE pid = $1";
-    const getproduct = await client.query(query, [id]);
-    let price: any = parseFloat(getproduct.rows?.[0].price).toFixed(2);
-    let quantity = item.quantity;
-    total = total + price * quantity;
-  }
+    let query2 = "SELECT quantity FROM inventory WHERE id =$1";
 
-  let finale = total.toString().replace(".", "");
-  let totalPrice = parseInt(finale);
-  return totalPrice;
+    const getQuantity = await client.query(query2, [id]);
+    let initialQuantity = getQuantity.rows?.[0].quantity;
+    //check if given Quantity > Quantity in inventory
+    if (quantity > initialQuantity) {
+      let failedorder = await failedOrder(id);
+      failed.push(failedorder);
+      //console.log("failed  :" + failed);
+    } else {
+      //console.log("success :" + id);
+      const getproduct = await client.query(query, [id]);
+      let price: any = parseFloat(getproduct.rows?.[0].price).toFixed(2);
+      total = total + price * quantity;
+      success.push({ pid: id, quantity: quantity });
+    }
+  }
+  return { amount: total, success: success, failed: [failed] };
+};
+
+const failedOrder = async (pid: any) => {
+  let failed = [];
+  failed.push(pid);
+  return failed;
 };
 
 module.exports = router;

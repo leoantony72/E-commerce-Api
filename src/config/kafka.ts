@@ -5,3 +5,4 @@ const kafka = new Kafka({
   brokers: ["broker:29092"],
 });
 module.exports = kafka;
+
