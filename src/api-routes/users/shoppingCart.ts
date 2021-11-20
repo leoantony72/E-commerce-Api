@@ -1,6 +1,4 @@
 import express, { Request, Response, NextFunction } from "express";
-import { ClientRequest } from "http";
-import { nextTick } from "process";
 import { Cart } from "../../controller/generateId";
 const router = express.Router();
 const client = require("../../config/database");

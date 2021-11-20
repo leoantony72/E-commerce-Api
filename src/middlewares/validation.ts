@@ -189,3 +189,27 @@ exports.BillingDetails = [
     next();
   },
 ];
+exports.ratingDetail = [
+  check("rating", "Rating must be a number between 0 and 5")
+    .notEmpty()
+    .withMessage("rating required")
+    .isFloat({ min: 0, max: 5 }),
+  check("comment")
+    .notEmpty()
+    .matches(/^[A-Za-z$#%0-9\s]+$/)
+    .withMessage(" must be alphabetic.")
+    .isLength({ min: 1, max: 300 })
+    .withMessage("Comment Not Provided"),
+  (req: Request, res: Response, next: NextFunction) => {
+    //returns err from validation
+    const errors = validationResult(req);
+    const extractedErrors: any = [];
+    errors
+      .array({ onlyFirstError: true })
+      .map((err: any) => extractedErrors.push({ [err.param]: err.msg }));
+    if (!errors.isEmpty()) {
+      return res.json({ error: extractedErrors });
+    }
+    next();
+  },
+];

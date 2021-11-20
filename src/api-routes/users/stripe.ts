@@ -99,7 +99,7 @@ const decreaseQuantity = async (items: any) => {
     for (let item of items) {
       let pid = item.pid;
       let Quantity = item.quantity;
-
+      await client.query("BEGIN");
       let query = "SELECT quantity FROM inventory WHERE id = $1";
       let query2 = "UPDATE inventory SET quantity = $1 WHERE id = $2";
 
@@ -111,8 +111,10 @@ const decreaseQuantity = async (items: any) => {
 
       const updateQuantity = await client.query(query2, [finalquantity, pid]);
       //console.log(updateQuantity);
+      await client.query("COMMIT");
     }
   } catch (err) {
+    await client.query("ROLLBACK");
     console.log(err);
     return err;
   }

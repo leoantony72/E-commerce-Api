@@ -84,13 +84,13 @@ CREATE TABLE product_rating(
 CREATE INDEX idx_pr_id ON product_rating(pid);
 
 
-CREATE TABLE comments(
-    cid VARCHAR(12) NOT NULL PRIMARY KEY,
-    comment VARCHAR(255) NOT NULL,
-    author VARCHAR REFERENCES users(username),
-    userid VARCHAR(11) REFERENCES users(userid),
+CREATE TABLE ratings(
+    rid VARCHAR(12) NOT NULL PRIMARY KEY,
     pid VARCHAR(11) REFERENCES products(pid),
-    date_created TIMESTAMP NOT NULL
+    userid VARCHAR(11) REFERENCES users(userid),
+    rating_number INT NOT NULL,
+    comment VARCHAR(300) NOT NULL,
+    submitted TIMESTAMP NOT NULL
 );
 
 CREATE TABLE tokens(

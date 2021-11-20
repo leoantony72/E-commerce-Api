@@ -32,3 +32,11 @@ export function Cart() {
   const id = nanoid();
   return id;
 }
+export function ratingid() {
+  const nanoid = customAlphabet(
+    "1234567890abcdefhijklmnopqABCDEFGHIJKLMNOP",
+    12
+  );
+  const id = nanoid();
+  return id;
+}
