@@ -43,6 +43,7 @@ var stripeHandler = StripeCheckout.configure({
       },
     });
     const data = await response.json();
+
     data.products.forEach(function (item) {
       //console.log(item);
       items.push({
@@ -69,7 +70,7 @@ var stripeHandler = StripeCheckout.configure({
         return res.json();
       })
       .then(function (data) {
-        alert(data.message, +"Failed purchases :"+[data.failed]);
+        alert(data.message, +"Failed purchases :" + [data.failed]);
         var cartItems = document.getElementsByClassName("cart-items")[0];
         while (cartItems.hasChildNodes()) {
           cartItems.removeChild(cartItems.firstChild);

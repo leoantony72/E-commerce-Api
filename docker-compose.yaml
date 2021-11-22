@@ -20,6 +20,12 @@ services:
     ports:
       - "4000:4000"
     command: npm run dev
+    deploy:
+      resources:
+        limits:
+          memory: 620M
+        reservations:
+          memory: 620M
     volumes:
       - .:/app/
       - /app/node_modules
@@ -78,6 +84,10 @@ services:
       context: ./nginx
     ports:
       - "80:80"
+networks:
+  default:
+    external:
+      name: E-commerce_Api
 volumes:
   postgres_data:
   redis_data:

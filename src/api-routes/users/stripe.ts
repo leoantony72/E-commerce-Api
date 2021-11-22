@@ -67,27 +67,28 @@ router.post("/purchase", async (req: Request, res: Response) => {
             billing_address_id: checkAddress.rows?.[0].id,
             order_status: createCharge.status,
             payment_type: createCharge.payment_method,
-            items,
+            succeeded,
           }),
         },
       ],
     });
 
     if (createCharge.status === "succeeded") {
-      //console.log(createCharge);
+      // console.log(createCharge);
       res.status(200).json({
         message: "Successfully purchased items",
         failed: failedOrders,
       });
       let updateQuantity = await decreaseQuantity(succeeded);
     } else {
-      console.log(createCharge);
+      // console.log(createCharge);
       return res.status(400).json({
         message: "Please try again later for payment",
         failed: failedOrders,
       });
     }
   } catch (err: any) {
+    console.log(err);
     return res.status(400).json({
       message: "Please try again later for payment",
     });
@@ -142,7 +143,11 @@ const finditem = async (items: any, total: any, success: any, failed: any) => {
       success.push({ pid: id, quantity: quantity });
     }
   }
-  return { amount: total, success: success, failed: [failed] };
+  console.log("map total :" + total);
+  let finale = total.toFixed(2).toString().replace(".", "");
+  let totalPrice = parseInt(finale);
+  console.log(totalPrice);
+  return { amount: totalPrice, success: success, failed: [failed] };
 };
 
 const failedOrder = async (pid: any) => {

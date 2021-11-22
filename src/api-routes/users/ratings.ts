@@ -12,16 +12,42 @@ router.post(
   async (req: Request, res: Response) => {
     const { rating, comment } = req.body;
     const { pid } = req.params;
-    const uid = req.session.userid;
+    const userid = req.session.userid;
 
     if (!pid) {
       return res.status(400).json({ err: "Please Provide the postID" });
     }
 
+    const checkproduct = await client.query(
+      "SELECT price FROM products WHERE pid =$1",
+      [pid]
+    );
+    if (checkproduct.rowCount === 0) {
+      return res.status(400).json({ err: "Product Not Found" });
+    }
+
     let query = "SELECT rid FROM ratings WHERE pid=$1 AND userid =$2";
-    const getrid = await client.query(query, [pid, uid]);
+    const getrid = await client.query(query, [pid, userid]);
     if (getrid.rowCount != 0) {
       return res.status(400).json({ err: "Already Rated This Product" });
+    }
+    //CHECK IF USER HAS BOUGHT THE PRODUCT
+    const checkIfBuyed = await client.query(
+      "SELECT ot.item_id FROM orders AS ord JOIN order_items ot ON ord.order_id = ord.order_id WHERE customer_id=$1 GROUP BY ot.item_id;",
+      [userid]
+    );
+    let check_Product_Is_Buyed = checkIfBuyed.rows;
+    console.log(check_Product_Is_Buyed);
+
+    let itemid = check_Product_Is_Buyed;
+    function userExists(items: any) {
+      return items.some(function (item: any) {
+        return item.item_id === pid;
+      });
+    }
+    let checkIf_UserBuyed = userExists(itemid);
+    if (checkIf_UserBuyed != true) {
+      return res.status(400).json({ err: "You Haven't bought the Product😐" });
     }
 
     try {
@@ -35,7 +61,7 @@ router.post(
       const postRatings = await client.query(query, [
         rid,
         pid,
-        uid,
+        userid,
         rating,
         comment,
         date,
@@ -59,6 +85,14 @@ router.delete(
     const userid = req.session.userid;
     if (!pid) {
       return res.status(400).json({ err: "Please Provide the postID" });
+    }
+
+    const checkproduct = await client.query(
+      "SELECT price FROM products WHERE pid =$1",
+      [pid]
+    );
+    if (checkproduct.rowCount === 0) {
+      return res.status(400).json({ err: "Product Not Found" });
     }
 
     try {
@@ -89,6 +123,14 @@ router.put(
     if (!pid) {
       return res.status(400).json({ err: "Please Provide the postID" });
     }
+    const checkproduct = await client.query(
+      "SELECT price FROM products WHERE pid =$1",
+      [pid]
+    );
+    if (checkproduct.rowCount === 0) {
+      return res.status(400).json({ err: "Product Not Found" });
+    }
+
     try {
       await client.query("BEGIN");
       let query =
@@ -114,6 +156,13 @@ router.get("/ratings/:pid", async (req: Request, res: Response) => {
   const { pid } = req.params;
   if (!pid) {
     return res.status(400).json({ err: "Please Provide the postID" });
+  }
+  const checkproduct = await client.query(
+    "SELECT price FROM products WHERE pid =$1",
+    [pid]
+  );
+  if (checkproduct.rowCount === 0) {
+    return res.status(400).json({ err: "Product Not Found" });
   }
 
   let query =
