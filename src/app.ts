@@ -5,6 +5,8 @@ import {
   active,
   Adminvalidate,
   Usersvalidate,
+  Managervalidate,
+  Shippervalidate,
 } from "./middlewares/authorization";
 import { serverError } from "./middlewares/errhandler";
 const session = require("express-session");
@@ -19,9 +21,12 @@ const verifyEmail = require("./api-routes/auth/verifyemail");
 const login = require("./api-routes/auth/login");
 const logout = require("./api-routes/auth/logout");
 const forgotPassword = require("./api-routes/auth/forgotPassword");
+const sentotp = require("./api-routes/manager/orderManagement/updateOrderstatus");
+const confirmDelivery = require("./api-routes/manager/orderManagement/confirmOrder");
 const addBillingdetail = require("./api-routes/users/addbillingAddress");
 const rating = require("./api-routes/users/ratings");
 const product = require("./api-routes/admin/Product");
+const getOrders = require("./api-routes/manager/orderManagement/getOrders");
 const updateproduct = require("./api-routes/admin/updateProduct");
 const deleteproduct = require("./api-routes/admin/deleteProduct");
 const add_discount = require("./api-routes/admin/discount");
@@ -52,6 +57,7 @@ app.use(
     name: "SESSION",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       path: "/",
       maxAge: 3600000 * 60 * 10,
@@ -74,6 +80,9 @@ app.use("/api", rating);
 app.use("/api", Usersvalidate, stripe);
 app.use("/api", Usersvalidate, ShoppingCart);
 app.use("/api", Usersvalidate, addBillingdetail);
+app.use("/api/manager", Managervalidate, getOrders);
+app.use("/api/manager", Shippervalidate, sentotp);
+app.use("/api/order", Usersvalidate, confirmDelivery);
 app.use("/api/admin", Adminvalidate, product);
 app.use("/api/admin", Adminvalidate, updateproduct);
 app.use("/api/admin", Adminvalidate, deleteproduct);

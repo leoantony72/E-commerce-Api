@@ -17,6 +17,12 @@ services:
       GMAIL_PASS: "${GMAIL_PASS}"
       STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
       STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY}"
+    depends_on:
+        - db
+        - redis
+        - zookeeper
+        - broker  
+        - nginx
     ports:
       - "4000:4000"
     command: npm run dev
@@ -83,7 +89,9 @@ services:
     build:
       context: ./nginx
     ports:
-      - "80:80"
+      - 80:80
+    volumes:
+      - /certs:/etc/nginx/certs
 networks:
   default:
     external:

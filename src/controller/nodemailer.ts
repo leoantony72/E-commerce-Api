@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, response, Response } from "express";
+import { token } from "morgan";
 const nodemailer = require("nodemailer");
 
 var smtpTransport = nodemailer.createTransport({
@@ -95,7 +96,7 @@ module.exports.sendResetPassword = async (
   smtpTransport.sendMail(mailOptions, function (error: any, res: any) {
     if (error) {
       res.end("error");
-    } 
+    }
   });
 };
 
@@ -129,6 +130,59 @@ module.exports.sendLoginalert = async (email: string) => {
     <center>
       <p>Someone Just Logged Into Your Account,If It Isn't You Who Logged In Please Click The link Below To change The Password</p>
       <p><a href=${link}>Click here To reset password</a></p> 
+    </center>
+    </body>
+  </html></a>`,
+  };
+  smtpTransport.sendMail(mailOptions, function (error: any, res: any) {
+    if (error) {
+      res.end("error");
+    } else {
+      res.status(200).json({ success: "User created successfully" });
+    }
+  });
+};
+//Send Otp
+module.exports.sendOtp = async (
+  email: string,
+  otp: any,
+  order_id: any,
+  userid: string
+) => {
+  const link =
+    `http://localhost:${process.env.PORT}/api/order/confirmdelivery?uid=` +
+    userid +
+    `&token=` +
+    otp +
+    `&oid=` +
+    order_id;
+
+  const mailOptions: {
+    from: string;
+    to: string;
+    subject: string;
+    html: any;
+  } = {
+    from: "apiblogbackend@gmail.com",
+    to: email,
+    subject: "Confirm Order",
+    html: `<html>
+    <head>
+      <style type="text/css">
+        body, p, div {
+          font-family: Helvetica, Arial, sans-serif;
+          font-size: 14px;
+        }
+        a {
+          text-decoration: none;
+        }
+      </style>
+      <title></title>
+    </head>
+    <body>
+    <center>
+      <b>Confirm Order Delivery</b>
+      <p><a href=${link}>Click here To Confirm Order Delivery</a></p> 
     </center>
     </body>
   </html></a>`,
