@@ -9,7 +9,7 @@ const {
 const transactionLogger = {
   transports: [
     new transports.File({
-      filename: "./logs/example.log",
+      filename: "./logs/err.log",
     }),
   ],
   format: format.combine(

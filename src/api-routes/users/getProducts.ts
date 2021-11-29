@@ -1,18 +1,35 @@
 import express, { Response, Request, Router } from "express";
 
 const router = express.Router();
+const { promisify } = require("util");
 const client = require("../../config/database");
+const { redis } = require("../../config/redis");
 const { transactionLogger } = require("../../config/winston");
+
+const GET_ASYNC = promisify(redis.get).bind(redis);
+const SET_ASYNC = promisify(redis.set).bind(redis);
 
 router.get("/products", async (req: Request, res: Response) => {
   var limit = Number(req.query.limit);
   if (!limit) var limit = 11;
+  const reply = await GET_ASYNC("products");
+  if (reply) {
+    console.log("using cached data");
+    res.status(200).json(JSON.parse(reply));
+    return;
+  }
   try {
     await client.query("BEGIN");
 
     let query = "SELECT * FROM products LIMIT $1";
     let getproducts = await client.query(query, [limit]);
     await client.query("COMMIT");
+    const saveResult = await SET_ASYNC(
+      "products",
+      JSON.stringify(getproducts.rows),
+      "EX",
+      600000
+    );
     return res.json({ products: getproducts.rows });
   } catch (err) {
     transactionLogger.error(
@@ -26,7 +43,11 @@ router.get("/products", async (req: Request, res: Response) => {
 
 router.get("/products/:pid", async (req: Request, res: Response) => {
   const { pid } = req.params;
-
+  const reply = await GET_ASYNC(pid);
+  if (reply) {
+    console.log("using cached data");
+    return res.status(200).json(JSON.parse(reply));
+  }
   //@Implement Cashing Here
 
   await client.query("BEGIN");
@@ -39,8 +60,14 @@ router.get("/products/:pid", async (req: Request, res: Response) => {
     return res.status(400).json({ err: "Product Not Found" });
   }
 
-  res.status(200).json({ product: getProduct.rows });
   await client.query("COMMIT");
+  res.status(200).json({ product: getProduct.rows });
+  const saveResult = await SET_ASYNC(
+    pid,
+    JSON.stringify(getProduct.rows),
+    "EX",
+    600000
+  );
 
   //@Implement logging For Caching !!important
 });
