@@ -2,6 +2,7 @@ import express, { Response, Request } from "express";
 const router = express.Router();
 const client = require("../../../config/database");
 const kafka = require("../../../config/kafka");
+const { transactionLogger } = require("../../../config/winston");
 
 router.get("/orders", async (req: Request, res: Response) => {
   const { status } = req.query;
@@ -21,13 +22,31 @@ router.get("/orders", async (req: Request, res: Response) => {
     console.log(getOrders);
     res.status(400).json({ success: getOrders.rows });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     console.log(err);
     res.status(400).json({ err: "Something Went Wrong" });
   }
 });
 
-router.get("/order/:orderid", (req: Request, res: Response) => {
+router.get("/order/:orderid", async (req: Request, res: Response) => {
   const { orderid } = req.params;
+
+  try {
+    let getOrder = await client.query(
+      "SELECT * FROM order_items WHERE order_id=$1",
+      [orderid]
+    );
+
+    res.status(200).json({ success: getOrder.rows });
+  } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
+    console.log(err);
+    res.status(400).json({ err: err });
+  }
 });
 
 module.exports = router;

@@ -3,7 +3,7 @@ import fs from "fs";
 const router = express.Router();
 const { promisify } = require("util");
 const client = require("../../config/database");
-const unlinkAsync = promisify(fs.unlink);
+const { transactionLogger } = require("../../config/winston");
 
 //Delete Product
 router.delete("/product/:id", async (req: Request, res: Response) => {
@@ -26,6 +26,9 @@ router.delete("/product/:id", async (req: Request, res: Response) => {
     res.json({ success: "Product Deleted" });
   } catch (err) {
     console.log(err);
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     res.json({ err: err });
   }
 });

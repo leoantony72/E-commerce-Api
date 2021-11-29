@@ -9,6 +9,7 @@ import {
   Shippervalidate,
 } from "./middlewares/authorization";
 import { serverError } from "./middlewares/errhandler";
+import { json } from "stream/consumers";
 const session = require("express-session");
 require("dotenv").config();
 const app = express();
@@ -36,6 +37,7 @@ let RedisStore = require("connect-redis")(session);
 const secret: string = process.env.SESSION_SECRET!;
 const client = require("./config/database");
 const stripe = require("./api-routes/users/stripe");
+const { transactionLogger } = require("./config/winston");
 const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
 //Middlewares
 app.use(cors());
@@ -43,6 +45,11 @@ app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+const accessLogStream = fs.createWriteStream("./logs/http.log", { flags: "a" });
+
+// Setup the logger
+app.use(morgan("combined", { stream: accessLogStream }));
+
 app.use(express.static("public"));
 app.use("/images", express.static("images/"));
 app.use(
@@ -61,7 +68,7 @@ app.use(
     cookie: {
       path: "/",
       maxAge: 3600000 * 60 * 10,
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
     },
   })
@@ -81,7 +88,7 @@ app.use("/api", Usersvalidate, stripe);
 app.use("/api", Usersvalidate, ShoppingCart);
 app.use("/api", Usersvalidate, addBillingdetail);
 app.use("/api/manager", Managervalidate, getOrders);
-app.use("/api/manager", Shippervalidate, sentotp);
+app.use("/api/shipper", Shippervalidate, sentotp);
 app.use("/api/order", Usersvalidate, confirmDelivery);
 app.use("/api/admin", Adminvalidate, product);
 app.use("/api/admin", Adminvalidate, updateproduct);
@@ -129,6 +136,9 @@ app.get("/store", async (req, res) => {
       items: { products: getproducts.rows },
     });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.status(400).json({ err: err });

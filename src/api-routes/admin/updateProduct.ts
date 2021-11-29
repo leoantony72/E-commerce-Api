@@ -6,6 +6,7 @@ const { promisify } = require("util");
 const { Product } = require("../../middlewares/validation");
 const client = require("../../config/database");
 const unlinkAsync = promisify(fs.unlink);
+const { transactionLogger } = require("../../config/winston");
 
 //Update Product
 router.put("/product/:id", Product, async (req: Request, res: Response) => {
@@ -52,6 +53,9 @@ router.put("/product/:id", Product, async (req: Request, res: Response) => {
     await client.query("COMMIT");
     return res.status(201).json({ success: "Product Uploaded" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.json({ message: err });
@@ -73,6 +77,9 @@ router.put("/stock/:id", async (req: Request, res: Response) => {
     await client.query("COMMIT");
     return res.json({ success: "Stock Updated" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.json({ err: err });

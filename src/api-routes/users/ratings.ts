@@ -4,6 +4,7 @@ const router = express.Router();
 const { ratingDetail } = require("../../middlewares/validation");
 const client = require("../../config/database");
 const { ratingid } = require("../../controller/generateId");
+const { transactionLogger } = require("../../config/winston");
 
 router.post(
   "/ratings/:pid",
@@ -70,6 +71,9 @@ router.post(
       await client.query("COMMIT");
       return res.status(200).json({ success: "Rating Added" });
     } catch (err) {
+      transactionLogger.error(
+        `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+      );
       await client.query("ROLLBACK");
       console.log(err);
       res.status(400).json({ err: err });
@@ -103,6 +107,9 @@ router.delete(
       await client.query("COMMIT");
       res.status(200).json({ success: "Rating Deleted" });
     } catch (err) {
+      transactionLogger.error(
+        `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+      );
       await client.query("ROLLBACK");
       console.log(err);
       res.status(400).json({ err: "Failed to Delete Ratings" });
@@ -144,6 +151,9 @@ router.put(
       await client.query("COMMIT");
       res.status(200).json({ success: "Updated Rating" });
     } catch (err) {
+      transactionLogger.error(
+        `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+      );
       await client.query("ROLLBACK");
       console.log(err);
       res.status(400).json({ err: "Faile To Update Rating" });

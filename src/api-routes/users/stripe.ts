@@ -6,6 +6,7 @@ const kafka = require("../../config/kafka");
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
 const stripe = require("stripe")(stripeSecretKey);
+const { transactionLogger } = require("../../config/winston");
 
 //stripe Payment
 router.post("/purchase", async (req: Request, res: Response) => {
@@ -88,6 +89,9 @@ router.post("/purchase", async (req: Request, res: Response) => {
       });
     }
   } catch (err: any) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     console.log(err);
     return res.status(400).json({
       message: "Please try again later for payment",

@@ -42,6 +42,7 @@
     "@types/express-session": "^1.17.4",
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.9.1",
-    "ts-node-dev": "^1.1.8"
+    "ts-node-dev": "^1.1.8",
+    "winston": "^3.3.3"
   }
 }

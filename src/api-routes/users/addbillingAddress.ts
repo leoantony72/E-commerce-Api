@@ -3,6 +3,9 @@ import { billingid } from "../../controller/generateId";
 const router = express.Router();
 const client = require("../../config/database");
 const { BillingDetails } = require("../../middlewares/validation");
+const { transactionLogger } = require("../../config/winston");
+
+//add address
 router.post(
   "/userAddress",
   BillingDetails,
@@ -35,6 +38,9 @@ router.post(
       await client.query("COMMIT");
       res.status(200).json({ success: "Address Added" });
     } catch (err) {
+      transactionLogger.error(
+        `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+      );
       console.log(err);
       res.json({ err: err });
       await client.query("ROLLBACK");
@@ -49,6 +55,9 @@ router.delete("/userAddress", async (req: Request, res: Response) => {
     const deladdress = await client.query(query, [userid]);
     res.status(200).json({ success: "Address Deleted" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     console.log(err);
     res.status(400).json({ err: err });
   }
@@ -76,6 +85,9 @@ router.put("/userAddress", async (req: Request, res: Response) => {
     await client.query("COMMIT");
     res.status(200).json({ success: "Address Updated" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     console.log(err);
     res.json({ err: err });
     await client.query("ROLLBACK");

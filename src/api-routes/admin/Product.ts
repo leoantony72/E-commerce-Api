@@ -7,6 +7,7 @@ const client = require("../../config/database");
 const { promisify } = require("util");
 const unlinkAsync = promisify(fs.unlink);
 const { Product } = require("../../middlewares/validation");
+const { transactionLogger } = require("../../config/winston");
 
 router.post("/product", Product, async (req: Request, res: Response) => {
   const file: any = req.files?.image;
@@ -49,6 +50,9 @@ router.post("/product", Product, async (req: Request, res: Response) => {
     await client.query("COMMIT");
     return res.status(201).json({ success: "Product Uploaded" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     res.json({ message: err });
   }

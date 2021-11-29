@@ -5,6 +5,7 @@ import { CLIENT_RENEG_LIMIT } from "tls";
 const router = express.Router();
 const client = require("../../../config/database");
 const { sendOtp } = require("../../../controller/nodemailer");
+const { transactionLogger } = require("../../../config/winston");
 
 router.post("/confirmdelivery", async (req: Request, res: Response) => {
   const userid = req.query.uid;
@@ -64,6 +65,9 @@ router.post("/confirmdelivery", async (req: Request, res: Response) => {
     await client.query("COMMIT");
     res.json({ success: "Confirmed Order Delivered" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.status(400).json({ err: "Something Went Wrong" });

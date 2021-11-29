@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { CLIENT_RENEG_LIMIT } from "tls";
 const client = require("../config/database");
 
 export async function Adminvalidate(
@@ -9,7 +10,7 @@ export async function Adminvalidate(
   const sess = req.session.newsession;
   const userid = req.session.userid;
   if (!sess) {
-    next({
+    return next({
       status: 403,
       message: "You Stepped In The Wrong Path",
     });
@@ -17,20 +18,18 @@ export async function Adminvalidate(
     const query = "SELECT user_role FROM users WHERE userid = $1";
     const result = await client.query(query, [userid]);
     if (result.rowCount === 0) {
-      next({
+      return next({
         status: 403,
         message: "You Stepped In The Wrong Path",
       });
-    } else {
-      if (result.rows[0].user_role === "ADMIN") {
-        next();
-      } else {
-        next({
-          status: 403,
-          message: "You Stepped In The Wrong Path",
-        });
-      }
     }
+    if (result.rows[0].user_role === "ADMIN") {
+      return next();
+    }
+    return next({
+      status: 403,
+      message: "You Stepped In The Wrong Path",
+    });
   }
 }
 export async function Managervalidate(
@@ -41,7 +40,7 @@ export async function Managervalidate(
   const sess = req.session.newsession;
   const userid = req.session.userid;
   if (!sess) {
-    next({
+    return next({
       status: 403,
       message: "You Stepped In The Wrong Path",
     });
@@ -53,16 +52,17 @@ export async function Managervalidate(
         status: 403,
         message: "You Stepped In The Wrong Path",
       });
-    } else {
-      if (result.rows[0].user_role === "ADMIN" || "Manager") {
-        next();
-      } else {
-        next({
-          status: 403,
-          message: "You Stepped In The Wrong Path",
-        });
-      }
     }
+    if (result.rows[0].user_role === "ADMIN") {
+      return next();
+    }
+    if (result.rows[0].user_role === "MANAGER") {
+      return next();
+    }
+    return next({
+      status: 403,
+      message: "You Stepped In The Wrong Path",
+    });
   }
 }
 
@@ -74,7 +74,7 @@ export async function Usersvalidate(
   const sess = req.session.newsession;
   const userid = req.session.userid;
   if (!req.session.newsession) {
-    next({
+    return next({
       status: 401,
       message: "Please Login To Use This Feature",
     });
@@ -82,20 +82,27 @@ export async function Usersvalidate(
     const query = "SELECT user_role FROM users WHERE userid = $1";
     const result = await client.query(query, [userid]);
     if (result.rowCount === 0) {
-      next({
+      return next({
         status: 401,
         message: "Please Login To Use This Feature",
       });
-    } else {
-      if (result.rows[0].user_role === "USER" || "ADMIN") {
-        next();
-      } else {
-        next({
-          status: 401,
-          message: "Please Login To Use This Feature",
-        });
-      }
     }
+    if (result.rows[0].user_role === "ADMIN") {
+      return next();
+    }
+    if (result.rows[0].user_role === "USER") {
+      return next();
+    }
+    if (result.rows[0].user_role === "MANAGER") {
+      return next();
+    }
+    if (result.rows[0].user_role === "SHIPPER") {
+      return next();
+    }
+    return next({
+      status: 401,
+      message: "Please Login To Use This Feature",
+    });
   }
 }
 
@@ -107,7 +114,8 @@ export async function Shippervalidate(
   const sess = req.session.newsession;
   const userid = req.session.userid;
   if (!sess) {
-    next({
+    console.log("sess no")
+    return next({
       status: 403,
       message: "You Stepped In The Wrong Path",
     });
@@ -115,20 +123,26 @@ export async function Shippervalidate(
     const query = "SELECT user_role FROM users WHERE userid = $1";
     const result = await client.query(query, [userid]);
     if (result.rowCount === 0) {
-      next({
+      console.log("sess no2")
+      return next({
         status: 403,
         message: "You Stepped In The Wrong Path",
       });
-    } else {
-      if (result.rows[0].user_role === "ADMIN" || "Manager" || "Shipper") {
-        next();
-      } else {
-        next({
-          status: 403,
-          message: "You Stepped In The Wrong Path",
-        });
-      }
     }
+    if (result.rows[0].user_role === "ADMIN") {
+      return next();
+    }
+    if (result.rows[0].user_role === "MANAGER") {
+      return next();
+    }
+    if (result.rows[0].user_role === "SHIPPER") {
+      return next();
+    }
+    console.log("sess no3")
+    return next({
+      status: 403,
+      message: "You Stepped In The Wrong Path",
+    });
   }
 }
 
@@ -166,5 +180,5 @@ export async function active(req: Request, res: Response, next: NextFunction) {
       return await logout(req, res);
     }
   }
-  next();
+  return next();
 }

@@ -2,6 +2,7 @@ import express, { Response, Request, Router } from "express";
 
 const router = express.Router();
 const client = require("../../config/database");
+const { transactionLogger } = require("../../config/winston");
 
 router.get("/products", async (req: Request, res: Response) => {
   var limit = Number(req.query.limit);
@@ -14,6 +15,9 @@ router.get("/products", async (req: Request, res: Response) => {
     await client.query("COMMIT");
     return res.json({ products: getproducts.rows });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.status(400).json({ err: err });

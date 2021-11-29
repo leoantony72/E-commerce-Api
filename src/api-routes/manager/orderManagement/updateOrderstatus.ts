@@ -1,10 +1,10 @@
 import express, { Response, Request } from "express";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { Userid } from "../../../controller/generateId";
 const router = express.Router();
 const client = require("../../../config/database");
 const { sendOtp } = require("../../../controller/nodemailer");
+const { transactionLogger } = require("../../../config/winston");
 
 router.post("/updateorder/:oid", async (req: Request, res: Response) => {
   const { oid } = req.params;
@@ -36,16 +36,14 @@ router.post("/updateorder/:oid", async (req: Request, res: Response) => {
 
     const otp = Otp();
     const tokenhash = await bcrypt.hash(otp, 9);
-    let mode = "order_status";
     const expiry = +new Date() + 1200000;
 
     //Insert into DB
     let query3 =
-      "INSERT INTO tokens(userid,mode,token,expiry)VALUES($1,$2,$3,$4)";
+      "INSERT INTO tokens(userid,token,expiry)VALUES($1,$2,$3)";
 
     const insertOtp = await client.query(query3, [
       userid,
-      order_status,
       tokenhash,
       expiry,
     ]);
@@ -55,6 +53,9 @@ router.post("/updateorder/:oid", async (req: Request, res: Response) => {
     console.log(sendOtp_Email);
     res.status(200).json({ success: "Otp Sent" });
   } catch (err) {
+    transactionLogger.error(
+      `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+    );
     await client.query("ROLLBACK");
     console.log(err);
     res.status(400).json({ err: "Something Went Wrong" });
