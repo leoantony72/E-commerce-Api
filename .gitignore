@@ -3,3 +3,5 @@ node_modules
 redis-data
 postgres-data
 images
+logs/err.log
+logs/http.log 

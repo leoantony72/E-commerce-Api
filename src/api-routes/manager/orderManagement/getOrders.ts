@@ -38,8 +38,21 @@ router.get("/order/:orderid", async (req: Request, res: Response) => {
       "SELECT * FROM order_items WHERE order_id=$1",
       [orderid]
     );
+    let getcustomer = await client.query(
+      "SELECT order_id,customer_id,total,billing_address_id,order_status,date_created FROM orders WHERE order_id=$1",
+      [orderid]
+    );
+    let customerId = getcustomer.rows[0].customer_id;
+    console.log(customerId);
 
-    res.status(200).json({ success: getOrder.rows });
+    const getcustomerDetails = await client.query(
+      "SELECT ua.userid,us.username,us.email,us.user_ip,ua.address_line1,ua.address_line2,ua.city,ua.country,ua.postal_code,ua.mobile FROM user_address AS ua JOIN users us ON us.userid = ua.userid WHERE ua.userid =$1;",
+      [customerId]
+    );
+
+    res.status(200).json({
+      success: { order: getOrder.rows, customer: getcustomerDetails.rows },
+    });
   } catch (err) {
     transactionLogger.error(
       `userid:${req.session.userid},ip:${req.ip},Err:${err}`
