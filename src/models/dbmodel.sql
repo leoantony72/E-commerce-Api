@@ -32,7 +32,7 @@ CREATE TABLE user_payment(
     userid VARCHAR(11) NOT NULL REFERENCES users(userid)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-    payment_type VARCHAR(50) NOT NULL,
+    payment_type VARCHAR(50) NOT NULL
 );
 CREATE INDEX idx_user_pay_id ON user_payment(userid);
 

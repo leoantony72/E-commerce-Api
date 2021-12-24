@@ -11,6 +11,8 @@ router.post("/updateorder/:oid", async (req: Request, res: Response) => {
 
   let query = "SELECT customer_id,order_status FROM orders WHERE order_id=$1";
   const getCustomerid = await client.query(query, [oid]);
+  if (getCustomerid.rowCount === 0)
+    return res.status(400).json({ err: "Somethings Wrong" });
   let order_status = getCustomerid.rows?.[0].order_status;
   //Checks if the order is fulfilled
   if (order_status === "fulfilled")
@@ -39,14 +41,9 @@ router.post("/updateorder/:oid", async (req: Request, res: Response) => {
     const expiry = +new Date() + 1200000;
 
     //Insert into DB
-    let query3 =
-      "INSERT INTO tokens(userid,token,expiry)VALUES($1,$2,$3)";
+    let query3 = "INSERT INTO tokens(userid,token,expiry)VALUES($1,$2,$3)";
 
-    const insertOtp = await client.query(query3, [
-      userid,
-      tokenhash,
-      expiry,
-    ]);
+    const insertOtp = await client.query(query3, [userid, tokenhash, expiry]);
     await client.query("COMMIT");
     //send Email
     let sendOtp_Email = await sendOtp(email, otp, oid, userid);
