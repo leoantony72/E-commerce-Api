@@ -593,3 +593,9 @@ Deletes Automatically when requested
 ```
 
 &nbsp;
+
+⭕ NOTE 
+```
+You should also setup Order-service (Documentation provided 🔥)
+https://github.com/leoantony72/order-service
+```
