@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p .",
     "dev": "ts-node-dev src/app.ts",
-    "start": "tsc && node ./lib/index.js"
+    "start": "node dist/app.js",
+    "lint": "npx eslint . --ext .ts"
   },
   "author": "",
   "license": "ISC",
@@ -38,11 +39,16 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/connect-redis": "^0.0.18",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/express-session": "^1.17.4",
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.9.1",
+    "@types/nodemailer": "^6.4.4",
+    "@typescript-eslint/eslint-plugin": "^5.8.1",
+    "@typescript-eslint/parser": "^5.8.1",
+    "eslint": "^8.5.0",
     "ts-node-dev": "^1.1.8",
     "winston": "^3.3.3"
   }

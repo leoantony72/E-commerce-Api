@@ -3,19 +3,17 @@ import fs from "fs";
 import { Postid } from "../../controller/generateId";
 import { uploadimg } from "../../controller/upload";
 const router = express.Router();
-const client = require("../../config/database");
-const { promisify } = require("util");
-const unlinkAsync = promisify(fs.unlink);
-const { Product } = require("../../middlewares/validation");
+import { pool as client } from "../../config/database";
+import { promisify } from "util";
+import { Product } from "../../middlewares/validation";
 const { transactionLogger } = require("../../config/winston");
-
 router.post("/product", Product, async (req: Request, res: Response) => {
   const file: any = req.files?.image;
   if (!file || Object.keys(file).length === 0) {
     return res.status(400).json({ err: "No Files Were Uploaded" });
   }
 
-  let mime = file.mimetype;
+  const mime = file.mimetype;
   if (mime !== "image/jpeg") {
     return res.json({ err: "Only jpg/jpeg/png Supported" });
   }
@@ -23,7 +21,7 @@ router.post("/product", Product, async (req: Request, res: Response) => {
     const { title, summary, price, stock, category } = req.body;
     const upload = await uploadimg(file);
     console.log(upload);
-    let image = upload;
+    const image = upload;
 
     const pid = await Postid();
     const created_at = new Date();
@@ -58,4 +56,4 @@ router.post("/product", Product, async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as product };

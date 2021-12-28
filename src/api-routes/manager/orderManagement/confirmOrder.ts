@@ -1,37 +1,34 @@
 import express, { Response, Request } from "express";
-import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { CLIENT_RENEG_LIMIT } from "tls";
 const router = express.Router();
-const client = require("../../../config/database");
-const { sendOtp } = require("../../../controller/nodemailer");
+import { pool as client } from "../../../config/database";
 const { transactionLogger } = require("../../../config/winston");
 
 router.post("/confirmdelivery", async (req: Request, res: Response) => {
   const userid = req.query.uid;
   const orderid = req.query.oid;
-  const token: any = req.query.token;
+  const token:any = req.query.token;
 
   try {
     await client.query("BEGIN");
     //Check if order is alredy fulfilled
-    let query1 =
+    const query1 =
       "SELECT order_status FROM orders WHERE customer_id=$1 AND order_id =$2";
     const getStatus = await client.query(query1, [userid, orderid]);
-    let status = getStatus.rows?.[0].order_status;
     if (getStatus.rowCount === 0)
       return res.status(400).json({ err: "Order NOt found" });
+    const status = getStatus.rows?.[0].order_status;
     if (status === "fulfilled")
       return res.status(400).json({ err: "Order Alredy fulfilled" });
 
     //check token
-    let query2 = "SELECT token,expiry FROM tokens WHERE userid=$1";
+    const query2 = "SELECT token,expiry FROM tokens WHERE userid=$1";
     const getToken = await client.query(query2, [userid]);
     if (getToken.rowCount === 0)
       return res.status(400).json({ err: "Invalid Token" });
-    let dbtoken = getToken.rows?.[0].token;
+    const dbtoken = getToken.rows?.[0].token;
     console.log(dbtoken);
-    let expiry = getToken.rows?.[0].expiry;
+    const expiry = getToken.rows?.[0].expiry;
     console.log(expiry);
     const now = Date.now();
     if (now > expiry) {
@@ -50,8 +47,8 @@ router.post("/confirmdelivery", async (req: Request, res: Response) => {
         .json({ err: "Invalid Token Or Token Have Expired" });
     }
 
-    let orderstatus = "fulfilled";
-    let query3 =
+    const orderstatus = "fulfilled";
+    const query3 =
       "UPDATE orders SET order_status=$1 WHERE customer_id=$2 AND order_id=$3";
     const updateStaus = await client.query(query3, [
       orderstatus,
@@ -74,4 +71,4 @@ router.post("/confirmdelivery", async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as confirmDelivery };

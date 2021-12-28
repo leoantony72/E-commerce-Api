@@ -1,7 +1,7 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { check, validationResult } from "express-validator";
 
-exports.validation = [
+export const validation = [
   check("username")
     .exists()
     .matches(/^[A-Za-z$#%0-9\s]+$/)
@@ -41,7 +41,7 @@ exports.validation = [
   },
 ];
 
-exports.Emailvalidation = [
+export const Emailvalidation = [
   check("email", "email is not valid").isEmail().normalizeEmail(),
 
   (req: Request, res: Response, next: NextFunction) => {
@@ -58,7 +58,7 @@ exports.Emailvalidation = [
   },
 ];
 
-exports.Loginvalidation = [
+export const Loginvalidation = [
   check("username")
     .exists()
     .matches(/^[A-Za-z$#%0-9\s]+$/)
@@ -99,7 +99,7 @@ exports.Loginvalidation = [
   },
 ];
 
-exports.Product = [
+export const Product = [
   check("title")
     .exists()
     .matches(/^[A-Za-z$#%0-9\s]+$/)
@@ -140,7 +140,7 @@ exports.Product = [
   },
 ];
 
-exports.BillingDetails = [
+export const BillingDetails = [
   check("address_line1")
     .exists()
     .matches(/^[A-Za-z$#%0-9\s]+$/)
@@ -189,7 +189,7 @@ exports.BillingDetails = [
     next();
   },
 ];
-exports.ratingDetail = [
+export const ratingDetail = [
   check("rating", "Rating must be a number between 0 and 5")
     .notEmpty()
     .withMessage("rating required")

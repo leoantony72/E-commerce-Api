@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { CLIENT_RENEG_LIMIT } from "tls";
-const client = require("../config/database");
+import {pool as client} from "../config/database"
 
 export async function Adminvalidate(
   req: Request,

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
-const { checkusername } = require("../../controller/username");
+import { checkusername } from "../../controller/username";
 
 router.post("/checkusername", async (req: Request, res: Response) => {
   const { username } = req.body;
@@ -11,4 +11,4 @@ router.post("/checkusername", async (req: Request, res: Response) => {
   return res.json({ success: "Username Not Taken" });
 });
 
-module.exports = router;
+export { router as checkusername };

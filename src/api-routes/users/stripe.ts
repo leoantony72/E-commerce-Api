@@ -1,30 +1,30 @@
 import express, { Response, Request } from "express";
 const router = express.Router();
-const client = require("../../config/database");
-const kafka = require("../../config/kafka");
+import { pool as client } from "../../config/database";
+import { kafka } from "../../config/kafka";
 
+const { transactionLogger } = require("../../config/winston");
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
 const stripe = require("stripe")(stripeSecretKey);
-const { transactionLogger } = require("../../config/winston");
 
 //stripe Payment
 router.post("/purchase", async (req: Request, res: Response) => {
   const items = req.body.items;
   const userid = req.session.userid;
   //check Biling Address Exists or Not
-  let query = "SELECT id FROM user_address WHERE userid = $1";
+  const query = "SELECT id FROM user_address WHERE userid = $1";
   const checkAddress = await client.query(query, [userid]);
   if (checkAddress.rowCount === 0)
     return res.status(200).json({ message: "Please Add Billing Details" });
   try {
-    let total = 0;
-    let failed: [] = [];
-    let success: [] = [];
-    let Order = await finditem(items, total, failed, success);
-    let totalAmount = Order.amount;
-    let failedOrders = Order.failed;
-    let succeeded = Order.success;
+    const total = 0;
+    const failed: [] = [];
+    const success: [] = [];
+    const Order = await finditem(items, total, failed, success);
+    const totalAmount = Order.amount;
+    const failedOrders = Order.failed;
+    const succeeded = Order.success;
 
     console.log(
       "Orders  Failed  :" +
@@ -80,7 +80,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
         message: "Successfully purchased items",
         failed: failedOrders,
       });
-      let updateQuantity = await decreaseQuantity(succeeded);
+      const updateQuantity = await decreaseQuantity(succeeded);
     } else {
       // console.log(createCharge);
       return res.status(400).json({
@@ -101,12 +101,12 @@ router.post("/purchase", async (req: Request, res: Response) => {
 
 const decreaseQuantity = async (items: any) => {
   try {
-    for (let item of items) {
-      let pid = item.pid;
-      let Quantity = item.quantity;
+    for (const item of items) {
+      const pid = item.pid;
+      const Quantity = item.quantity;
       await client.query("BEGIN");
-      let query = "SELECT quantity FROM inventory WHERE id = $1";
-      let query2 = "UPDATE inventory SET quantity = $1 WHERE id = $2";
+      const query = "SELECT quantity FROM inventory WHERE id = $1";
+      const query2 = "UPDATE inventory SET quantity = $1 WHERE id = $2";
 
       const getquantity = await client.query(query, [pid]);
       const initialquantity = getquantity.rows?.[0].quantity;
@@ -126,38 +126,37 @@ const decreaseQuantity = async (items: any) => {
 };
 
 const finditem = async (items: any, total: any, success: any, failed: any) => {
-  for (let item of items) {
+  for (const item of items) {
     const id = item.pid;
     const quantity = item.quantity;
-    let query = "SELECT price FROM products WHERE pid = $1";
-    let query2 = "SELECT quantity FROM inventory WHERE id =$1";
+    const query = "SELECT price FROM products WHERE pid = $1";
+    const query2 = "SELECT quantity FROM inventory WHERE id =$1";
 
     const getQuantity = await client.query(query2, [id]);
-    let initialQuantity = getQuantity.rows?.[0].quantity;
+    const initialQuantity = getQuantity.rows?.[0].quantity;
     //check if given Quantity > Quantity in inventory
     if (quantity > initialQuantity) {
-      let failedorder = await failedOrder(id);
+      const failedorder = await failedOrder(id);
       failed.push(failedorder);
       //console.log("failed  :" + failed);
     } else {
       //console.log("success :" + id);
       const getproduct = await client.query(query, [id]);
-      let price: any = parseFloat(getproduct.rows?.[0].price).toFixed(2);
+      const price: any = parseFloat(getproduct.rows?.[0].price).toFixed(2);
       total = total + price * quantity;
       success.push({ pid: id, quantity: quantity });
     }
   }
   console.log("map total :" + total);
-  let finale = total.toFixed(2).toString().replace(".", "");
-  let totalPrice = parseInt(finale);
+  const finale = total.toFixed(2).toString().replace(".", "");
+  const totalPrice = parseInt(finale);
   console.log(totalPrice);
   return { amount: totalPrice, success: success, failed: [failed] };
 };
 
 const failedOrder = async (pid: any) => {
-  let failed = [];
+  const failed: string[] = [];
   failed.push(pid);
   return failed;
 };
-
-module.exports = router;
+export { router as stripe };

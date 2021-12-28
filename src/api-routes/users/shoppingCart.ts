@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import { Cart } from "../../controller/generateId";
-const router = express.Router();
-const client = require("../../config/database");
+export const router = express.Router();
+import { pool as client } from "../../config/database";
 
 //Get Product From Shopping Cart
 router.get("/cart", async (req: Request, res: Response, next: NextFunction) => {
@@ -12,7 +12,7 @@ router.get("/cart", async (req: Request, res: Response, next: NextFunction) => {
       message: "Unexpected Error",
     });
 
-  let query =
+  const query =
     "SELECT ca.pid,pr.title,pr.image,pr.summary,ca.quantity,pr.price,ca.date_created FROM cart AS ca JOIN products pr ON ca.pid = pr.pid WHERE userid = $1;";
 
   const getCartItems = await client.query(query, [userid]);
@@ -32,12 +32,12 @@ router.post(
         status: 400,
         message: "Unexpected Error",
       });
-    let { pid } = req.params;
+    const { pid } = req.params;
     var query = "SELECT quantity FROM cart WHERE userid = $1 AND pid = $2";
     const checkProduct = await client.query(query, [userid, pid]);
     if (checkProduct.rowCount != 0) {
-      let quantity = checkProduct.rows?.[0].quantity;
-      let updatequantity = quantity + 1;
+      const quantity = checkProduct.rows?.[0].quantity;
+      const updatequantity = quantity + 1;
       var query =
         "UPDATE cart SET quantity = $1 WHERE userid = $2 AND pid = $3";
       const incrItem = await client.query(query, [updatequantity, userid, pid]);
@@ -50,7 +50,7 @@ router.post(
     );
     if (checkpr.rowCount === 0)
       return res.status(200).json({ err: "Item Not Found" });
-    let date = new Date();
+    const date = new Date();
     const cart_id = await Cart();
     var query =
       "INSERT INTO cart(cart_id,userid,pid,date_created)VALUES($1,$2,$3,$4)";
@@ -69,14 +69,14 @@ router.delete(
         status: 400,
         message: "Unexpected Error",
       });
-    let { pid } = req.params;
+    const { pid } = req.params;
     var query = "SELECT * FROM cart WHERE userid = $1 AND pid = $2";
     const checkProduct = await client.query(query, [userid, pid]);
     if (checkProduct.rowCount === 0)
       return res.status(200).json({ err: "Item Not Found" });
-    let quantity = checkProduct.rows?.[0].quantity;
+    const quantity = checkProduct.rows?.[0].quantity;
     if (quantity > 1) {
-      let updatequantity = quantity - 1;
+      const updatequantity = quantity - 1;
       var query =
         "UPDATE cart SET quantity = $1 WHERE userid = $2 AND pid = $3";
       const decItem = await client.query(query, [updatequantity, userid, pid]);
@@ -89,4 +89,4 @@ router.delete(
   }
 );
 
-module.exports = router;
+export { router as ShoppingCart }

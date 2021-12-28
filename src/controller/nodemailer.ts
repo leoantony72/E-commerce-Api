@@ -1,8 +1,7 @@
-import express, { NextFunction, Request, response, Response } from "express";
-import { token } from "morgan";
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer"
 
-var smtpTransport = nodemailer.createTransport({
+const smtpTransport = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.GMAIL_USER,
@@ -11,7 +10,7 @@ var smtpTransport = nodemailer.createTransport({
 });
 
 //Send Email Verification
-module.exports.sendEmailVerification = async (email: string, token: string) => {
+export const sendEmailVerification = async (email: string, token: string) => {
   const link = `http://localhost:${process.env.PORT}/api/verify/?vif=` + token;
 
   const mailOptions: {
@@ -53,7 +52,7 @@ module.exports.sendEmailVerification = async (email: string, token: string) => {
 };
 
 //Reset password
-module.exports.sendResetPassword = async (
+export const sendResetPassword = async (
   email: string,
   token: string,
   userid: string
@@ -101,7 +100,7 @@ module.exports.sendResetPassword = async (
 };
 
 //Login Alert
-module.exports.sendLoginalert = async (email: string) => {
+export const sendLoginalert = async (email: string) => {
   const link = `http://localhost:${process.env.PORT}/api/auth/forgotpassword`;
 
   const mailOptions: {
@@ -143,7 +142,7 @@ module.exports.sendLoginalert = async (email: string) => {
   });
 };
 //Send Otp
-module.exports.sendOtp = async (
+export const sendOtp = async (
   email: string,
   otp: any,
   order_id: any,

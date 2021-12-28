@@ -1,16 +1,16 @@
-import express, { NextFunction, Request, response, Response } from "express";
+import express, {Request,Response } from "express";
+const router = express.Router();
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-const router = express.Router();
-const client = require("../../config/database");
-const { Emailvalidation } = require("../../middlewares/validation");
-const { sendResetPassword } = require("../../controller/nodemailer");
+import { pool as client } from "../../config/database";
+import { Emailvalidation } from "../../middlewares/validation";
+import { sendResetPassword } from "../../controller/nodemailer";
 import { check } from "express-validator";
 
 //forgot-password
 router.post(
   "/forgotpassword",
-  [Emailvalidation],
+  Emailvalidation,
   async (req: Request, res: Response) => {
     //get the email
 
@@ -26,7 +26,6 @@ router.post(
       [userid]
     );
     if (checktokenisPresent.rowCount !== 0) {
-      const oldtoken = checktokenisPresent.rows?.[0].token;
       const deltoken = await client.query(
         "DELETE FROM tokens WHERE userid = $1",
         [userid]
@@ -41,7 +40,7 @@ router.post(
     const tokenhash = await bcrypt.hash(token, 9); //generate a hash
     const expiry = +new Date() + 600000; //expirty date
     const query = "INSERT INTO tokens(userid,token,expiry)VALUES($1,$2,$3)"; //store token in db
-    const reg = await client.query(query, [userid, tokenhash, expiry]);
+    const insertToken = await client.query(query, [userid, tokenhash, expiry]);
     await client.query("COMMIT");
     res.json({ success: "Email sent" });
     const sent = await sendResetPassword(email, token, userid);
@@ -73,13 +72,12 @@ router.post(
   ],
   async (req: Request, res: Response) => {
     // get passwords
-    const { password, confirmPassword, email } = req.body;
+    const { password, confirmPassword} = req.body;
     if (password !== confirmPassword) {
       return res.status(400).json({ err: "Password not same" });
     }
     const userid = req.query.id;
     const token: any = req.query.rec;
-
     const checkuser = await client.query(
       "SELECT token,expiry FROM tokens WHERE userid = $1",
       [userid]
@@ -98,7 +96,7 @@ router.post(
         .json({ err: "Invalid Token Or Token Have Expired" });
     }
     const hash = await bcrypt.hash(password, 10);
-    const updatepass = await client.query(
+    const updatepassword = await client.query(
       "UPDATE users SET passwordhash = $1 WHERE userid = $2",
       [hash, userid]
     );
@@ -111,8 +109,8 @@ router.post(
   }
 );
 
-module.exports = router;
-
 async function randomString() {
   return crypto.randomBytes(64).toString("hex");
 }
+
+export { router as forgotPassword };

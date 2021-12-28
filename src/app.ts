@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
+const app = express();
 import cors from "cors";
 import morgan from "morgan";
 import {
@@ -9,36 +10,36 @@ import {
   Shippervalidate,
 } from "./middlewares/authorization";
 import { serverError } from "./middlewares/errhandler";
-import { json } from "stream/consumers";
-const session = require("express-session");
-require("dotenv").config();
-const app = express();
-const fs = require("fs");
-const fileUpload = require("express-fileupload");
-const register = require("./api-routes/auth/register");
-const getproducts = require("./api-routes/users/getProducts");
-const ShoppingCart = require("./api-routes/users/shoppingCart");
-const verifyEmail = require("./api-routes/auth/verifyemail");
-const login = require("./api-routes/auth/login");
-const logout = require("./api-routes/auth/logout");
-const forgotPassword = require("./api-routes/auth/forgotPassword");
-const sentotp = require("./api-routes/manager/orderManagement/updateOrderstatus");
-const confirmDelivery = require("./api-routes/manager/orderManagement/confirmOrder");
-const addBillingdetail = require("./api-routes/users/addbillingAddress");
-const rating = require("./api-routes/users/ratings");
-const product = require("./api-routes/admin/Product");
-const getOrders = require("./api-routes/manager/orderManagement/getOrders");
-const updateproduct = require("./api-routes/admin/updateProduct");
-const deleteproduct = require("./api-routes/admin/deleteProduct");
-const add_discount = require("./api-routes/admin/discount");
-const checkusername = require("./api-routes/users/checkUsername");
-const { redis } = require("./config/redis");
-let RedisStore = require("connect-redis")(session);
-const secret: string = process.env.SESSION_SECRET!;
-const client = require("./config/database");
-const stripe = require("./api-routes/users/stripe");
+import session from "express-session";
+import dotenv from "dotenv";
+dotenv.config();
+import fs from "fs";
+const RedisStore = require("connect-redis")(session);
+import fileUpload from "express-fileupload";
+import { redis } from "./config/redis";
+import { register } from "./api-routes/auth/register";
+import { getproducts } from "./api-routes/users/getProducts";
+import { ShoppingCart } from "./api-routes/users/shoppingCart";
+import { verifyEmail } from "./api-routes/auth/verifyemail";
+import { login } from "./api-routes/auth/login";
+import { logout } from "./api-routes/auth/logout";
+import { forgotPassword } from "./api-routes/auth/forgotPassword";
+import { sentotp } from "./api-routes/manager/orderManagement/updateOrderstatus";
+import { confirmDelivery } from "./api-routes/manager/orderManagement/confirmOrder";
+import { addBillingdetail } from "./api-routes/users/addbillingAddress";
+import { rating } from "./api-routes/users/ratings";
+import { product } from "./api-routes/admin/Product";
+import { getOrders } from "./api-routes/manager/orderManagement/getOrders";
+import { updateproduct } from "./api-routes/admin/updateProduct";
+import { deleteproduct } from "./api-routes/admin/deleteProduct";
+import { add_discount } from "./api-routes/admin/discount";
+import { checkusername } from "./api-routes/users/checkUsername";
+import { pool as client } from "./config/database";
+import { stripe } from "./api-routes/users/stripe";
 const { transactionLogger } = require("./config/winston");
+const secret: string = process.env.SESSION_SECRET!;
 const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
+
 //Middlewares
 app.use(cors());
 app.set("view engine", "ejs");
@@ -113,7 +114,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  let userid = req.session.userid;
+  const userid = req.session.userid;
   if (!userid) {
     return res.json("Not logged IN");
   }
@@ -122,13 +123,13 @@ app.get("/", (req: Request, res: Response) => {
 
 //Ejs Store
 app.get("/store", async (req, res) => {
-  var limit = Number(req.query.limit);
-  if (!limit) var limit = 11;
+  let limit = Number(req.query.limit);
+  if (!limit) limit = 11;
   try {
     await client.query("BEGIN");
 
-    let query = "SELECT * FROM products LIMIT $1";
-    let getproducts = await client.query(query, [limit]);
+    const query = "SELECT * FROM products LIMIT $1";
+    const getproducts = await client.query(query, [limit]);
     await client.query("COMMIT");
     //render store page
     res.render("store.ejs", {

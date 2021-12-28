@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
-const client = require("../../config/database");
+import { pool as client } from "../../config/database";
 
 router.get("/verify", async (req: Request, res: Response) => {
   const token = req.query.vif;
@@ -35,4 +35,4 @@ router.get("/verify", async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as verifyEmail };

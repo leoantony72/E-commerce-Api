@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
 import fs from "fs";
-const router = express.Router();
-const { promisify } = require("util");
-const client = require("../../config/database");
+ const router = express.Router();
+import { pool as client} from "../../config/database";
 const { transactionLogger } = require("../../config/winston");
 
 //Delete Product
@@ -33,4 +32,4 @@ router.delete("/product/:id", async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as deleteproduct };

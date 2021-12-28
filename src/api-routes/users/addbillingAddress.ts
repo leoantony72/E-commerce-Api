@@ -1,8 +1,8 @@
 import express, { Response, Request } from "express";
-import { billingid } from "../../controller/generateId";
+import { billingid } from "../../controller/generateId"; 
 const router = express.Router();
-const client = require("../../config/database");
-const { BillingDetails } = require("../../middlewares/validation");
+import { pool as client } from "../../config/database";
+import { BillingDetails } from "../../middlewares/validation";
 const { transactionLogger } = require("../../config/winston");
 
 //add address
@@ -21,11 +21,11 @@ router.post(
       return res.status(400).json({ err: "Address Alredy Exist" });
     try {
       await client.query("BEGIN");
-      let query =
+      const query =
         "INSERT INTO user_address(id,userid,address_line1, address_line2, city, postal_code, country, mobile)VALUES($1,$2,$3,$4,$5,$6,$7,$8)";
 
       const billing_id = await billingid();
-      let addbillingdetailes = await client.query(query, [
+      const addbillingdetailes = await client.query(query, [
         billing_id,
         userid,
         address_line1,
@@ -52,7 +52,7 @@ router.post(
 router.delete("/userAddress", async (req: Request, res: Response) => {
   const userid = req.session.userid;
   try {
-    let query = "DELETE FROM user_address WHERE userid = $1";
+    const query = "DELETE FROM user_address WHERE userid = $1";
     const deladdress = await client.query(query, [userid]);
     res.status(200).json({ success: "Address Deleted" });
   } catch (err) {
@@ -71,10 +71,10 @@ router.put("/userAddress", async (req: Request, res: Response) => {
   const userid = req.session.userid;
   try {
     await client.query("BEGIN");
-    let query =
+    const query =
       "UPDATE user_address SET address_line1 =$1,address_line2 =$2,city =$3,postal_code =$4,country =$5,mobile =$6 WHERE userid =$7";
 
-    let addbillingdetailes = await client.query(query, [
+    const addbillingdetailes = await client.query(query, [
       address_line1,
       address_line2,
       city,
@@ -95,4 +95,4 @@ router.put("/userAddress", async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as addBillingdetail };

@@ -1,10 +1,6 @@
-import express, { NextFunction, Request, response, Response } from "express";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
+import express, { Request, Response } from "express";
 const router = express.Router();
-const client = require("../../config/database");
-const { sendLoginalert } = require("../../controller/nodemailer");
-
+const { transactionLogger } = require("../../config/winston");
 router.post("/logout", async (req: Request, res: Response) => {
   if (!req.session.newsession)
     return res.json({ err: "You Are Not Logged In" });
@@ -12,7 +8,13 @@ router.post("/logout", async (req: Request, res: Response) => {
   req.session.destroy((err) => {
     res.clearCookie("SESSION");
     res.json({ sucess: "You have successfully Logged Out" });
+    if (err) {
+      res.json({ sucess: "Something Went Wrong" });
+      console.log(err);
+      transactionLogger.error(
+        `userid:${req.session.userid},ip:${req.ip},Err:${err}`
+      );
+    }
   });
 });
-
-module.exports = router;
+export { router as logout };

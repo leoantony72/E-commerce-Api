@@ -6,7 +6,7 @@ const {
   config,
 } = require("winston");
 
-const transactionLogger = {
+export const transactionLogger = {
   transports: [
     new transports.File({
       filename: "./logs/err.log",

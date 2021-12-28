@@ -1,11 +1,10 @@
 import express, { Request, Response } from "express";
+const router = express.Router();
 import fs from "fs";
 import { uploadimg } from "../../controller/upload";
-const router = express.Router();
-const { promisify } = require("util");
-const { Product } = require("../../middlewares/validation");
-const client = require("../../config/database");
-const unlinkAsync = promisify(fs.unlink);
+import { promisify } from "util";
+import { Product } from "../../middlewares/validation";
+import { pool as client } from "../../config/database";
 const { transactionLogger } = require("../../config/winston");
 
 //Update Product
@@ -17,12 +16,12 @@ router.put("/product/:id", Product, async (req: Request, res: Response) => {
   if (file.mimetype !== "image/jpeg") {
     return res.json({ err: "Only jpg/jpeg/png Supported" });
   }
-  const md5 = req.files?.md5;
+  //const md5 = req.files?.md5;
   try {
     const { id } = req.params;
     const { title, summary, price, stock, category } = req.body;
     const upload = await uploadimg(file);
-    let image = upload;
+    const image = upload;
 
     await client.query("BEGIN");
     const img = await client.query(
@@ -72,7 +71,7 @@ router.put("/stock/:id", async (req: Request, res: Response) => {
     }
     await client.query("BEGIN");
 
-    let query = "UPDATE inventory SET quantity = $1 WHERE id = $2";
+    const query = "UPDATE inventory SET quantity = $1 WHERE id = $2";
     await client.query(query, [stock, id]);
     await client.query("COMMIT");
     return res.json({ success: "Stock Updated" });
@@ -86,4 +85,4 @@ router.put("/stock/:id", async (req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export { router as updateproduct };

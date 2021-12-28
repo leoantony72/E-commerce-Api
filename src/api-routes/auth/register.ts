@@ -1,12 +1,12 @@
-import express, { NextFunction, Request, response, Response } from "express";
+import express, { Request, Response } from "express";
 const router = express.Router();
 import bcrypt from "bcrypt";
-import crypto from "crypto";
-const { Userid } = require("../../controller/generateId");
-const client = require("../../config/database");
-const { redis } = require("../../config/redis");
-const { validation } = require("../../middlewares/validation");
-const { sendEmailVerification } = require("../../controller/nodemailer");
+import crypto from "crypto";// const { Userid } = require("../../controller/generateId");
+import { Userid } from "../../controller/generateId";
+import { pool as client } from "../../config/database";
+import { redis } from "../../config/redis";// const { validation } = require("../../middlewares/validation");
+import { validation } from "../../middlewares/validation";
+import { sendEmailVerification } from "../../controller/nodemailer";
 
 //Register auth
 router.post("/register", validation, async (req: Request, res: Response) => {
@@ -51,9 +51,9 @@ router.post("/register", validation, async (req: Request, res: Response) => {
   await sendEmailVerification(email, token);
 });
 
-module.exports = router;
-
 //Create random string fro session
 async function randomString() {
   return crypto.randomBytes(64).toString("hex");
 }
+
+export { router as register }
