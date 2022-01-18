@@ -54,7 +54,7 @@ docker-compose up // in the root dir
 
 &nbsp;
 
-![GitHub Logo](readme_img/docker-compose.PNG)
+![GitHub Logo](readme_img/dockercompose.png)
 
 &nbsp;
 
@@ -373,7 +373,12 @@ Provide the verification token
 
 ❗ FORM DATA
 
-![GitHub Logo](readme_img/ADDproduct.PNG)
+![GitHub Logo](readme_img/addproduct.png)
+
+<b>👉The tool used here is Postman, Used to test API endpoints...<b><br>
+&nbsp;
+
+<b>❗The keys in the Image are the data we should provide to make a POST req, Missing any of the keys will result in an error<b>
 
 &nbsp;
 
@@ -387,7 +392,13 @@ Provide the verification token
 
 ❗ FORM DATA
 
-![GitHub Logo](readme_img/ADDproduct.PNG)
+![GitHub Logo](readme_img/updateproduct.png)
+<b>👉 The tool used here is Postman, Used to test API endpoints...<b><br>
+&nbsp;
+
+<b>❗ The keys in the image are same as that of POST req but make sure to change POST to PUT req.<b> <br>
+
+<b>❗ The keys in the Image are the data we should provide to make a POST req, Missing any of the keys will result in an error<b>
 
 &nbsp;
 
@@ -594,7 +605,8 @@ Deletes Automatically when requested
 
 &nbsp;
 
-⭕ NOTE 
+⭕ NOTE
+
 ```
 You should also setup Order-service (Documentation provided 🔥)
 https://github.com/leoantony72/order-service
